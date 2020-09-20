@@ -13,31 +13,30 @@ namespace _VstsSyncMigrator.Engine.Tests
     public class MigrationEngineTests
     {
         IEngineConfigurationBuilder ecb;
-        IHost host;
+        IServiceProvider services;
 
         [TestInitialize]
         public void Setup()
         {
             ecb = new EngineConfigurationBuilder();
-            host= new HostBuilder().ConfigureServices((context, services) =>
-            {
-                services.AddSingleton<IDetectOnlineService, DetectOnlineService>();
-                services.AddSingleton<IDetectVersionService, DetectVersionService>();
-                services.AddSingleton<IEngineConfigurationBuilder, EngineConfigurationBuilder>();
-                services.AddSingleton<EngineConfiguration>(ecb.BuildDefault());
-                services.AddSingleton<ProcessorContainer>();
-                services.AddSingleton<TypeDefinitionMapContainer>();
-                services.AddSingleton<GitRepoMapContainer>();
-                services.AddSingleton<ChangeSetMappingContainer>();
-                services.AddSingleton<MigrationEngine>();
-            }).Build();
+            var sc = new ServiceCollection();
+            sc.AddSingleton<IDetectOnlineService, DetectOnlineService>();
+            sc.AddSingleton<IDetectVersionService, DetectVersionService>();
+            sc.AddSingleton<IEngineConfigurationBuilder, EngineConfigurationBuilder>();
+            sc.AddSingleton<EngineConfiguration>(ecb.BuildDefault());
+            sc.AddSingleton<ProcessorContainer>();
+            sc.AddSingleton<TypeDefinitionMapContainer>();
+            sc.AddSingleton<GitRepoMapContainer>();
+            sc.AddSingleton<ChangeSetMappingContainer>();
+            sc.AddSingleton<MigrationEngine>();
+            services = sc.BuildServiceProvider();
         }
 
         [TestMethod]
         public void TestEngineCreation()
         {
 
-            MigrationEngine me = host.Services.GetRequiredService<MigrationEngine>();
+            MigrationEngine me = services.GetRequiredService<MigrationEngine>();
         }
 
         [TestMethod]
@@ -45,7 +44,7 @@ namespace _VstsSyncMigrator.Engine.Tests
         {
             EngineConfiguration ec = ecb.BuildDefault();
             ec.Processors.Clear();
-            MigrationEngine me = new MigrationEngine(host.Services, ec);
+            MigrationEngine me = new MigrationEngine(services, ec);
             me.Run();
 
         }
@@ -56,7 +55,7 @@ namespace _VstsSyncMigrator.Engine.Tests
             EngineConfiguration ec = ecb.BuildDefault();
             ec.Processors.Clear();
             ec.FieldMaps.Clear();
-            MigrationEngine me = new MigrationEngine(host.Services, ec);
+            MigrationEngine me = new MigrationEngine(services, ec);
             me.Run();
         }
 
@@ -65,7 +64,7 @@ namespace _VstsSyncMigrator.Engine.Tests
         {
             EngineConfiguration ec = ecb.BuildDefault();
             ec.FieldMaps.Clear();
-            MigrationEngine me = new MigrationEngine(host.Services, ec);
+            MigrationEngine me = new MigrationEngine(services, ec);
             me.Run();
         }
 
